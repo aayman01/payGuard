@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -20,9 +18,18 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              role: "user",
+            },
+          },
+        });
         if (error) throw error;
-        alert("Check your email for the confirmation link!");
+        router.push("/login");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -32,7 +39,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         router.push("/dashboard");
       }
     } catch (error) {
-      setError(error as unknown as string);
+      setError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
