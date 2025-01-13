@@ -7,7 +7,7 @@ import { useSupabase } from "../supabase-provider";
 
 export default function Login() {
   const router = useRouter();
-  const supabase = useSupabase();
+  const { supabase } = useSupabase();
 
   useEffect(() => {
     const checkUser = async () => {
