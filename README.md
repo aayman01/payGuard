@@ -59,7 +59,7 @@ PayGuard is a secure and robust payment management and verification system desig
 ### Installation
 1. Clone the repository:
    ```bash
-   ```git clone https://github.com/yourusername/payguard.git
+   ```git clone (https://github.com/aayman01/payGuard)
    ```cd payguard
    ```npm install
    ```npm run dev
