@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
+import { Suspense } from "react";
 import {
   Elements,
   PaymentElement,
@@ -57,6 +58,14 @@ function CheckoutForm() {
 }
 
 export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <PaymentContent />
+    </Suspense>
+  );
+}
+
+function PaymentContent() {
   const searchParams = useSearchParams();
   const clientSecret = searchParams?.get("client_secret");
 
