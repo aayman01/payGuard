@@ -26,15 +26,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     else if (req.method === "GET") {
       const { email } = req.query;
       
-      if (!email) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Email is required" 
-        });
-      }
-
+      // If email is provided, filter by email, otherwise get all payments
+      const query = email ? { email } : {};
+      
       const payments = await paymentsCollection
-        .find({ email })
+        .find(query)
         .sort({ created_at: -1 })
         .toArray();
 

@@ -56,7 +56,7 @@ export default function UserDashboard({ user }: { user: User }) {
       }
 
       const { id } = await paymentResponse.json();
-      console.log(id)
+      // console.log(i
 
       // Then create Stripe payment intent
       const stripeResponse = await fetch("/api/create-payment-intent/route", {
@@ -87,7 +87,7 @@ export default function UserDashboard({ user }: { user: User }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">User Dashboard</h1>
         <button
@@ -128,51 +128,53 @@ export default function UserDashboard({ user }: { user: User }) {
         </form>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Payment History</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="p-3 text-left">Title</th>
-                <th className="p-3 text-left">Amount</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Date</th>
-              </tr>
-            </thead>
-            <tbody key={payments.length}>
-              {payments.map((payment) => (
-                <tr key={payment.id} className="border-t">
-                  <td className="p-3">{payment.title}</td>
-                  <td className="p-3">${payment.amount.toFixed(2)}</td>
-                  <td className="p-3">
-                    <span
-                      className={`capitalize ${
-                        payment.status === "completed"
-                          ? "text-green-500"
-                          : payment.status === "failed"
-                          ? "text-red-500"
-                          : "text-yellow-500"
-                      }`}
-                    >
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    {new Date(payment.created_at).toLocaleDateString()}
-                  </td>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Payment History</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-3 text-left">Title</th>
+                  <th className="p-3 text-left">Amount</th>
+                  <th className="p-3 text-left">Status</th>
+                  <th className="p-3 text-left">Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody key={user?.user_metadata?.email}>
+                {payments.map((payment) => (
+                  <tr key={payment.id} className="border-t">
+                    <td className="p-3">{payment.title}</td>
+                    <td className="p-3">${payment.amount.toFixed(2)}</td>
+                    <td className="p-3">
+                      <span
+                        className={`capitalize ${
+                          payment.status === "completed"
+                            ? "text-green-500"
+                            : payment.status === "failed"
+                            ? "text-red-500"
+                            : "text-yellow-500"
+                        }`}
+                      >
+                        {payment.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {new Date(payment.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">
-          Upload Verification Document
-        </h2>
-        <DocumentUpload userEmail={user?.user_metadata?.email} />
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">
+            Upload Verification Document
+          </h2>
+          <DocumentUpload userEmail={user?.user_metadata?.email} />
+        </div>
       </div>
     </div>
   );

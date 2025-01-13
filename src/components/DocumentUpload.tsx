@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+// import { v4 as uuidv4 } from "uuid";
 
 interface DocumentUploadProps {
   userEmail: string;
@@ -43,6 +44,7 @@ export default function DocumentUpload({ userEmail }: DocumentUploadProps) {
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
+  console.log("outside function",file)
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
@@ -80,14 +82,16 @@ export default function DocumentUpload({ userEmail }: DocumentUploadProps) {
       const fileExt = file.name.split(".").pop();
       const fileName = `${userEmail}_${Date.now()}.${fileExt}`;
       const filePath = `${userEmail}/${fileName}`;
+      console.log('inside function',file)
 
-      // Check if bucket exists and create if needed
+      // // Check if bucket exists and create if needed
       const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(b => b.name === "verification-documents");
+      const bucketExists = buckets?.some((b) => b.name === "documents");
       
+      console.log(bucketExists)
       if (!bucketExists) {
-        const { error: createError } = await supabase.storage.createBucket("verification-documents", {
-          public: false,
+        const { error: createError } = await supabase.storage.createBucket("documents", {
+          public: true,
           fileSizeLimit: MAX_FILE_SIZE
         });
         
@@ -99,11 +103,8 @@ export default function DocumentUpload({ userEmail }: DocumentUploadProps) {
 
       // Upload to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
-        .from("verification-documents")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false
-        });
+        .from("documents")
+        .upload(filePath, file);
 
       if (uploadError) {
         console.error("Storage error:", uploadError);

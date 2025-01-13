@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 interface Payment {
-  id: string;
+  _id: string;
   title: string;
   amount: number;
   status: "pending" | "completed" | "failed";
@@ -48,6 +48,7 @@ export default function AdminDashboard() {
   });
   const [feedback, setFeedback] = useState("");
   const router = useRouter();
+  
 
   const fetchPayments = useCallback(async () => {
     const response = await fetch("/api/payments/route");
@@ -55,26 +56,32 @@ export default function AdminDashboard() {
       const data = await response.json();
       setPayments(data);
       updateSummary(data);
-    }
-  }, []);
-
-  const fetchDocuments = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("documents")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching documents:", error);
     } else {
-      setDocuments(data || []);
+      console.error("Error fetching payments:", await response.text());
     }
   }, []);
+
+  // const fetchDocuments = useCallback(async () => {
+  //   const { data, error } = await supabase
+  //     .from("documents")
+  //     .select("*")
+  //     .order("created_at", { ascending: false });
+
+  //   if (error) {
+  //     console.error("Error fetching documents:", error);
+  //   } else {
+  //     setDocuments(data || []);
+  //   }
+  // }, []);
+
+  const fetchDocuments = () =>{
+    setDocuments([])
+  }
 
   useEffect(() => {
     fetchPayments();
-    fetchDocuments();
-  }, [fetchPayments, fetchDocuments]);
+    // fetchDocuments();
+  }, [fetchPayments]);
 
   const updateSummary = (payments: Payment[]) => {
     const summary = payments.reduce(
@@ -97,9 +104,9 @@ export default function AdminDashboard() {
     setSummary(summary);
   };
 
-  const handlePaymentStatus = async (paymentId: string, newStatus: string) => {
+  const handlePaymentStatus = async (id: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/payments/${paymentId}/route`, {
+      const response = await fetch(`/api/payments/update-status/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -144,11 +151,16 @@ export default function AdminDashboard() {
     return true;
   });
 
+  // console.log(filteredPayments);
+
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-2">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
           Logout
         </button>
       </div>
@@ -161,19 +173,27 @@ export default function AdminDashboard() {
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm">Pending</h3>
-          <p className="text-2xl font-bold text-yellow-500">{summary.pendingPayments}</p>
+          <p className="text-2xl font-bold text-yellow-500">
+            {summary.pendingPayments}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm">Completed</h3>
-          <p className="text-2xl font-bold text-green-500">{summary.completedPayments}</p>
+          <p className="text-2xl font-bold text-green-500">
+            {summary.completedPayments}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm">Failed</h3>
-          <p className="text-2xl font-bold text-red-500">{summary.failedPayments}</p>
+          <p className="text-2xl font-bold text-red-500">
+            {summary.failedPayments}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm">Total Amount</h3>
-          <p className="text-2xl font-bold">${summary.totalAmount.toFixed(2)}</p>
+          <p className="text-2xl font-bold">
+            ${summary.totalAmount.toFixed(2)}
+          </p>
         </div>
       </div>
 
@@ -194,7 +214,9 @@ export default function AdminDashboard() {
           <input
             type="date"
             value={filter.startDate}
-            onChange={(e) => setFilter({ ...filter, startDate: e.target.value })}
+            onChange={(e) =>
+              setFilter({ ...filter, startDate: e.target.value })
+            }
             className="p-2 border rounded"
           />
           <input
@@ -206,108 +228,130 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Payments Table */}
-      <div className="bg-white p-4 rounded-lg shadow mb-8">
-        <h2 className="text-lg font-semibold mb-4">Payments</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="p-3 text-left">Title</th>
-                <th className="p-3 text-left">Amount</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Date</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map((payment) => (
-                <tr key={payment.id} className="border-t">
-                  <td className="p-3">{payment.title}</td>
-                  <td className="p-3">${payment.amount.toFixed(2)}</td>
-                  <td className="p-3">{payment.email}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                      ${payment.status === "completed" ? "bg-green-100 text-green-800" :
-                        payment.status === "failed" ? "bg-red-100 text-red-800" :
-                        "bg-yellow-100 text-yellow-800"}`}>
-                      {payment.status}
-                    </span>
-                  </td>
-                  <td className="p-3">{new Date(payment.created_at).toLocaleDateString()}</td>
-                  <td className="p-3">
-                    <select
-                      value={payment.status}
-                      onChange={(e) => handlePaymentStatus(payment.id, e.target.value)}
-                      className="p-2 border rounded"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="completed">Complete</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </td>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-8">
+        {/* Payments Table */}
+        <div className="bg-white p-2 rounded-lg shadow ">
+          <h2 className="text-lg font-semibold mb-4">Payments</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-3 text-left">Title</th>
+                  <th className="p-3 text-left">Amount</th>
+                  <th className="p-3 text-left">Email</th>
+                  <th className="p-3 text-left">Status</th>
+                  <th className="p-3 text-left">Date</th>
+                  <th className="p-3 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Documents Table */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">Verification Documents</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="p-3 text-left">File Name</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Date</th>
-                <th className="p-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents.map((doc) => (
-                <tr key={doc.id} className="border-t">
-                  <td className="p-3">{doc.original_name}</td>
-                  <td className="p-3">{doc.user_email}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                      ${doc.status === "approved" ? "bg-green-100 text-green-800" :
-                        doc.status === "rejected" ? "bg-red-100 text-red-800" :
-                        "bg-yellow-100 text-yellow-800"}`}>
-                      {doc.status}
-                    </span>
-                  </td>
-                  <td className="p-3">{new Date(doc.created_at).toLocaleDateString()}</td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
+              </thead>
+              <tbody key={filteredPayments.length}>
+                {filteredPayments.map((payment) => (
+                  <tr key={payment._id} className="border-t">
+                    <td className="p-3">{payment.title}</td>
+                    <td className="p-3">${payment.amount.toFixed(2)}</td>
+                    <td className="p-3">{payment.email}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold
+                      ${
+                        payment.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : payment.status === "failed"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                      >
+                        {payment.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {new Date(payment.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="p-3">
                       <select
-                        value={doc.status}
-                        onChange={(e) => handleDocumentStatus(doc.id, e.target.value)}
+                        value={payment.status}
+                        onChange={(e) =>
+                          handlePaymentStatus(payment?._id, e.target.value)
+                        }
                         className="p-2 border rounded"
                       >
                         <option value="pending">Pending</option>
-                        <option value="approved">Approve</option>
-                        <option value="rejected">Reject</option>
+                        <option value="completed">Complete</option>
+                        <option value="failed">Failed</option>
                       </select>
-                      {doc.status === "rejected" && (
-                        <input
-                          type="text"
-                          placeholder="Rejection reason"
-                          value={feedback}
-                          onChange={(e) => setFeedback(e.target.value)}
-                          className="p-2 border rounded"
-                        />
-                      )}
-                    </div>
-                  </td>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Documents Table */}
+        <div className="bg-white p-2 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">Verification Documents</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-3 text-left">File Name</th>
+                  <th className="p-3 text-left">Email</th>
+                  <th className="p-3 text-left">Status</th>
+                  <th className="p-3 text-left">Date</th>
+                  <th className="p-3 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {documents.map((doc) => (
+                  <tr key={doc.id} className="border-t">
+                    <td className="p-3">{doc.original_name}</td>
+                    <td className="p-3">{doc.user_email}</td>
+                    <td className="p-3">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold
+                      ${
+                        doc.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : doc.status === "rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                      >
+                        {doc.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {new Date(doc.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={doc.status}
+                          onChange={(e) =>
+                            handleDocumentStatus(doc.id, e.target.value)
+                          }
+                          className="p-2 border rounded"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="approved">Approve</option>
+                          <option value="rejected">Reject</option>
+                        </select>
+                        {doc.status === "rejected" && (
+                          <input
+                            type="text"
+                            placeholder="Rejection reason"
+                            value={feedback}
+                            onChange={(e) => setFeedback(e.target.value)}
+                            className="p-2 border rounded"
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

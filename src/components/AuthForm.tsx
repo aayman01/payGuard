@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 
@@ -34,7 +34,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         const salt = await bcrypt.genSalt(10);
 
         const hashedPassword = await bcrypt.hash(password, salt);
-        console.log(email, hashedPassword);
+        // console.log(email, hashedPassword);
 
         // Call our API to create the user in the database
         const response = await fetch("/api/user/route", {
@@ -55,7 +55,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           throw new Error(errorData.message || "Failed to create user in database");
         }
 
-        redirect("/login");
+        router.push("/login");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
