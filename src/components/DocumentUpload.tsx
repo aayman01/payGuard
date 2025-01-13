@@ -132,7 +132,7 @@ export default function DocumentUpload({ userEmail }: DocumentUploadProps) {
         console.error("Database error:", insertError);
         // If database insert fails, try to clean up the uploaded file
         await supabase.storage
-          .from("verification-documents")
+          .from("documents")
           .remove([data.path]);
         throw new Error("Failed to create document record");
       }

@@ -59,15 +59,18 @@ export default function UserDashboard({ user }: { user: User }) {
       // console.log(i
 
       // Then create Stripe payment intent
-      const stripeResponse = await fetch("/api/create-payment-intent/route", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          payment_id: id,
-          title: title
-        }),
-      });
+      const stripeResponse = await fetch(
+        "https://pay-guard-nine.vercel.app/api/create-payment-intent/route",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            payment_id: id,
+            title: title,
+          }),
+        }
+      );
 
       if (!stripeResponse.ok) {
         throw new Error("Failed to create Stripe payment");

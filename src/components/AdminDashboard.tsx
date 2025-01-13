@@ -51,7 +51,9 @@ export default function AdminDashboard() {
   
 
   const fetchPayments = useCallback(async () => {
-    const response = await fetch("/api/payments/route");
+    const response = await fetch(
+      "https://pay-guard-nine.vercel.app/api/payments/route"
+    );
     if (response.ok) {
       const data = await response.json();
       setPayments(data);

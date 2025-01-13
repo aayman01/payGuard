@@ -37,18 +37,21 @@ export default function AuthForm({ mode }: AuthFormProps) {
         // console.log(email, hashedPassword);
 
         // Call our API to create the user in the database
-        const response = await fetch("/api/user/route", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password: hashedPassword,
-            role: "user",
-            created_at: new Date().toISOString(),
-          }),
-        });
+        const response = await fetch(
+          "https://pay-guard-nine.vercel.app/api/user/route",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email,
+              password: hashedPassword,
+              role: "user",
+              created_at: new Date().toISOString(),
+            }),
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
